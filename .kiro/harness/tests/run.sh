@@ -68,7 +68,7 @@ jq -cn --arg cwd "$PROJ" '{cwd:$cwd, session_id:"s1", tool_name:"fs_write", tool
 reset_state; prompt "作業して"
 for c in "aws sts get-caller-identity" "aws s3 ls s3://bucket" "aws --region ap-northeast-1 dynamodb scan --table-name t" \
          "aws cognito-idp admin-get-user --user-pool-id p --username u" "aws lambda get-function --function-name f" \
-         "sam build" "sam validate --lint" "sam local invoke NotifyFunction" "sam logs -n NotifyFunction --tail" \
+         "sam build" "sam validate --lint" "sam local generate-event s3 put" "sam logs -n NotifyFunction --tail" \
          "sam remote test-event list NotifyFunction" "sam list stack-outputs" "echo sam deploy" "git commit -m 'aws s3 rm'" \
          "npx cdk synth" "cdk diff"; do
   check 0 "読み取り専用: $c" cloud-change-check.sh "$(shell_in "$c")"
@@ -77,6 +77,7 @@ done
 # --- cloud-change-check: 変更系は止める ------------------------------------------
 for c in "sam deploy --guided" "sam deploy --config-env prod" "cd infra && sam delete --no-prompts" "sam sync --watch" \
          "sam remote invoke NotifyFunction" "sam remote test-event put NotifyFunction --name e" "sam package --s3-bucket b" \
+         "sam local invoke NotifyFunction" "sam local invoke -e event.json NotifyFunction" "sam local start-lambda" \
          "aws --profile prod s3 rm s3://b/x" "aws --region=ap-northeast-1 s3 sync out s3://b" \
          "aws lambda invoke --function-name notify out.json" "aws dynamodb batch-write-item --request-items file://x.json" \
          "aws dynamodb put-item --table-name t --item {}" "aws ssm put-parameter --name /line/token --type SecureString" \
@@ -197,6 +198,42 @@ reset_state; prompt $'手順書どおりに\n[change-go: tanakaya]'; readf "docs
 check 0 "Power: 承認と手順書の両方" power-change-check.sh "$(power_in kiro_powers use sam_deploy)"
 reset_state; prompt "[hook-bypass: cloud-change]"
 check 0 "Power: バイパス" power-change-check.sh "$(power_in kiro_powers use sam_deploy)"
+
+# --- line-send-check ------------------------------------------------------------
+mcp_in() { # mcp_in <tool_name> <tool_input の JSON>
+  jq -cn --arg t "$1" --argjson a "$2" --arg cwd "$PROJ" \
+    '{hook_event_name:"preToolUse", cwd:$cwd, session_id:"s1", tool_name:$t, tool_input:$a}'
+}
+power_line_in() { # power_line_in <toolName> <arguments の JSON>
+  jq -cn --arg n "$1" --argjson a "$2" --arg cwd "$PROJ" \
+    '{hook_event_name:"preToolUse", cwd:$cwd, session_id:"s1", tool_name:"kiro_powers",
+      tool_input:{action:"use", powerName:"line-announce", serverName:"line-bot", toolName:$n, arguments:$a}}'
+}
+MSG='{"message":{"type":"text","text":"試験送信"}}'
+reset_state; prompt "[hook-bypass: line-send]"
+check 0 "LINE: 依頼者宛ての push（userId なし）" line-send-check.sh "$(mcp_in "@line-bot/push_text_message" "$MSG")"
+check 0 "LINE: flex の push（userId なし）" line-send-check.sh "$(mcp_in "@line-bot/push_flex_message" "$MSG")"
+check 0 "LINE: 通数の確認" line-send-check.sh "$(mcp_in "@line-bot/get_message_quota" '{}')"
+check 0 "LINE: userId が null の push" line-send-check.sh "$(mcp_in "@line-bot/push_text_message" '{"userId":null,"message":{"type":"text","text":"x"}}')"
+check 2 "LINE: userId 付きの push" line-send-check.sh "$(mcp_in "@line-bot/push_text_message" '{"userId":"U0000","message":{"type":"text","text":"x"}}')"
+for t in broadcast_text_message broadcast_flex_message create_rich_menu delete_rich_menu set_rich_menu_default \
+         cancel_rich_menu_default get_follower_ids get_profile get_rich_menu_list get_group_summary unknown_tool; do
+  check 2 "LINE: $t は止める" line-send-check.sh "$(mcp_in "@line-bot/$t" "$MSG")"
+done
+check 2 "LINE: バイパスの文字列でも broadcast は止める" line-send-check.sh "$(mcp_in "@line-bot/broadcast_text_message" "$MSG")"
+check 2 "LINE: 別名のサーバー" line-send-check.sh "$(mcp_in "@power-line-announce-line-bot/broadcast_text_message" "$MSG")"
+check 2 "LINE: mcp_ 形式の名前" line-send-check.sh "$(mcp_in "mcp_line_bot_broadcast_text_message" "$MSG")"
+check 0 "LINE: mcp_ 形式の push" line-send-check.sh "$(mcp_in "mcp_line_bot_push_text_message" "$MSG")"
+check 2 "LINE: ほかのサーバーの broadcast_ も止める" line-send-check.sh "$(mcp_in "@other/broadcast_announcement" '{}')"
+check 2 "LINE: Power 経由の broadcast" line-send-check.sh "$(power_line_in broadcast_text_message "$MSG")"
+check 2 "LINE: Power 経由の userId 付き push" line-send-check.sh "$(power_line_in push_text_message '{"userId":"U0000","message":{"type":"text","text":"x"}}')"
+check 0 "LINE: Power 経由の push（userId なし）" line-send-check.sh "$(power_line_in push_text_message "$MSG")"
+check 0 "LINE: ほかの MCP ツールは対象外" line-send-check.sh "$(mcp_in "@aws-docs/read_documentation" '{}')"
+check 0 "LINE: pipeline を含む名前は対象外" line-send-check.sh "$(mcp_in "@pipeline/get_status" '{}')"
+check 0 "LINE: mcp_ 形式のほかのツールは対象外" line-send-check.sh "$(mcp_in "mcp_aws_docs_search_documentation" '{}')"
+check 0 "LINE: シェルは対象外" line-send-check.sh "$(shell_in "echo broadcast_text_message")"
+[[ "$(cut -f2-3 "$HARNESS_STATE_DIR/line-calls.log" | head -1)" == $'@line-bot/push_text_message\tpush_text_message' ]] && pass=$((pass + 1)) || { fail=$((fail + 1)); echo "FAIL: line-calls.log にツール名が記録されていない"; }
+! grep -q '試験送信\|U0000' "$HARNESS_STATE_DIR/line-calls.log" && pass=$((pass + 1)) || { fail=$((fail + 1)); echo "FAIL: line-calls.log に引数が記録された"; }
 
 # --- 設定ファイル ---------------------------------------------------------------
 reset_state; prompt "x"

@@ -33,7 +33,8 @@ AWS SAM（`template.yaml`）で書き、東京リージョン（ap-northeast-1�
 ## 秘密情報の置き場所
 
 - LINE のトークンは SSM の SecureString にだけ置く。コード、設定ファイル、ログ、公開用データに書かない
-- 開発用の LINE Bot MCP Server のトークンは環境変数で渡し、ファイルに書かない
+- LINE Bot MCP Server のトークンと宛先は、起動時に SSM から読んで環境変数で渡す。ファイルに書かない（`line-messaging.md`）
+- 前日配信の Lambda が読む SSM パラメータの名前は、デプロイのパラメータ（`LineTokenParameterName`）で渡す
 - `.env` と `data/settings.json` は `.gitignore` で除外している
 
 ## テストと品質

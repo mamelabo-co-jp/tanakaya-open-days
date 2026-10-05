@@ -1,0 +1,13 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "line-bot": {
+      "type": "stdio",
+      "command": "bash",
+      "args": [
+        "-c",
+        "export AWS_PROFILE=\"${AWS_PROFILE:-mamelabo}\" AWS_REGION=\"${AWS_REGION:-ap-northeast-1}\"; token=$(aws ssm get-parameter --name \"${LINE_TOKEN_PARAMETER:-/tanakaya/prod/line-channel-access-token}\" --with-decryption --query Parameter.Value --output text) || exit 1; dest=$(aws ssm get-parameter --name \"${LINE_DESTINATION_PARAMETER:-/tanakaya/prod/line-destination-user-id}\" --with-decryption --query Parameter.Value --output text) || exit 1; CHANNEL_ACCESS_TOKEN=\"$token\" DESTINATION_USER_ID=\"$dest\" exec npx -y @line/line-bot-mcp-server@0.5.0"
+      ]
+    }
+  }
+}

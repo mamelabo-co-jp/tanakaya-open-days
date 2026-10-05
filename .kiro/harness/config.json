@@ -39,6 +39,18 @@
       }
     ]
   },
+  "lineSend": {
+    "enabled": true,
+    "allowedTools": [
+      "push_text_message",
+      "push_flex_message",
+      "get_message_quota"
+    ],
+    "pushTools": [
+      "push_text_message",
+      "push_flex_message"
+    ]
+  },
   "requireReading": {
     "enabled": true,
     "rules": [

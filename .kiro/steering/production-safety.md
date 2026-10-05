@@ -28,4 +28,5 @@ aws と sam の変更系コマンドは `.kiro/harness/` の hook が止める�
 ## 指示なしでよい操作
 
 - 読み取り（list、get、describe、`sam logs`、`sam validate`、`sam build`）
-- テスト用アカウントだけを相手にする操作
+
+LINE の公式アカウントは本番だけ。依頼者宛ての push による試験送信も、依頼者の指示を受けてから行う（`line-messaging.md`）。
