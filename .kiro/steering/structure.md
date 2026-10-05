@@ -4,51 +4,30 @@ inclusion: always
 
 # プロジェクト構造
 
-<!-- ↓ PJに合わせて書き換えてください -->
-
 ## ディレクトリ構成
 
 ```
-project-root/
-├── src/                  # ソースコード
-│   ├── index.ts          # エントリポイント
-│   └── ...
-├── __tests__/            # テストファイル（コロケーション配置も可: src/**/*.test.ts）
-├── docs/                 # ドキュメント
-│   ├── design/           # 設計書
-│   └── impl/             # 実装計画書
-├── .kiro/                # Kiro設定
-├── .github/              # GitHub Actions
-├── package.json
-├── tsconfig.json
-└── README.md
+tanakaya-open-days/
+├── src/
+│   ├── calendar/          # 営業日の判定（純粋関数）
+│   ├── settings/          # 設定ファイルの読み込みと検証
+│   ├── publish/           # 設定ファイルから公開用データを作る
+│   └── notify/            # 前日配信の Lambda（LINE、DynamoDB、SSM を使う）
+├── public/                # 公開ページ（静的な HTML、CSS、JS）
+├── data/
+│   └── settings.example.json   # 見本。実ファイルの settings.json は git で管理しない
+├── template.yaml          # AWS SAM
+├── docs/
+│   ├── plan.md            # 計画の正本
+│   └── runbooks/          # デプロイなど、クラウドを変える操作の手順書
+├── powers/line-announce/  # 自作の Power
+└── .kiro/                 # steering、specs、hooks、agents、harness（hook の本体）
 ```
 
-## 命名規約
+Spec の design で構成を変えたときは、このファイルも合わせて直す。
 
-### ファイル・ディレクトリ
+## 配置と命名
 
-- コンポーネント: PascalCase（`Button.tsx`）
-- ユーティリティ・モジュール: camelCase（`dateUtils.ts`）
-- テスト: `<対象ファイル名>.test.ts`
-- 定数ファイル: camelCase（`constants.ts`）
-
-### コード内
-
-- 変数・関数: camelCase
-- 型・インターフェース: PascalCase
-- 定数: UPPER_SNAKE_CASE
-- プライベートメンバー: `_` プレフィックスは使わない
-
-## インポート順序
-
-1. Node.js ビルトイン
-2. 外部パッケージ
-3. 内部モジュール（`@/` or 相対パス）
-4. 型インポート（`type` キーワード付き）
-
-## アーキテクチャ方針
-
-<!-- PJに合わせて記載 -->
-
-- （例: レイヤードアーキテクチャ、コロケーションパターン等）
+- テストは対象と同じディレクトリに置く。単体テストは `<対象>.test.ts`、プロパティベーステストは `<対象>.property.test.ts`
+- ファイル名は camelCase。型は PascalCase、定数は UPPER_SNAKE_CASE
+- 外部サービス（LINE、DynamoDB、SSM）を呼ぶコードは `src/notify/` に置く。`src/calendar/` と `src/publish/` からは呼ばない

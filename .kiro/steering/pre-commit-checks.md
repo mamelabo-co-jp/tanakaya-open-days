@@ -2,12 +2,12 @@
 inclusion: always
 ---
 
-# コミット前チェック（必須）
+# コミット前チェック
 
-git commit を実行する前に、以下を必ず実行すること:
+git commit の前に、次を行う。
 
-1. `npx eslint <変更対象ディレクトリ>` — lint エラーがあれば修正
-2. `npx prettier --write <変更対象ファイル>` — フォーマット適用
-3. `git add` で再ステージ
+1. `git diff --cached` で、`.env`、`data/settings.json`、トークンらしき文字列がステージされていないことを確かめる
+2. TypeScript を変えたとき：`npx eslint <変えたディレクトリ>` と `npx prettier --check <変えたファイル>` を実行する。違反を直して再ステージする
+3. `src/` を変えたとき：`npx vitest run` を実行し、すべて通ることを確かめる
 
-これにより CI の lint / format:check ステップの失敗を防ぐ。
+`package.json` ができるまでは、2 と 3 を省く。

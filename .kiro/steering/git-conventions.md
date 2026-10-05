@@ -4,45 +4,30 @@ inclusion: always
 
 # Git 規約
 
-## ブランチ戦略
+## ブランチと PR
 
-- `main` : 本番リリース用（直接 push 禁止）
-- `dev` : 開発統合ブランチ（必要に応じて）
-- `feature/<issue-id>-<短い説明>` : 機能開発
-- `fix/<issue-id>-<短い説明>` : バグ修正
-- `chore/<説明>` : メンテナンス作業
+- `main` に直接コミット、push しない
+- 作業ごとにブランチを作る：`feature/<短い説明>`、`fix/<短い説明>`、`docs/<短い説明>`、`chore/<短い説明>`
+- ブランチを push し、`gh pr create` で `main` 向けの PR を作る。本文には、やったこと、やらなかったこと、確かめたことを書く
+- マージは依頼者の指示を受けてから、`gh pr merge --merge --delete-branch` で行う（コミットの履歴を残す）
+- force push と、push 済みの履歴の書き換えはしない
+
+## 提出後の凍結
+
+- 2026-10-06 15:59（日本時間）の提出後、審査完了（2026-10-19 23:59 PT）か受賞メールの受信まで、commit、push、PR のマージをしない
+- 凍結中に休業日を変えるときは、git で管理しない `data/settings.json` を書き換えてデプロイする
 
 ## コミットメッセージ
 
-Conventional Commits に従う:
+Conventional Commits に従う。
 
 ```
 <type>(<scope>): <description>
-
-[optional body]
 ```
 
-### type
+type は `feat`、`fix`、`docs`、`style`、`refactor`、`test`、`chore` のいずれか。
 
-- `feat` : 新機能
-- `fix` : バグ修正
-- `docs` : ドキュメントのみの変更
-- `style` : コードの意味に影響しない変更（空白、フォーマット等）
-- `refactor` : バグ修正でも新機能でもないコード変更
-- `test` : テストの追加・修正
-- `chore` : ビルドプロセスや補助ツールの変更
+## コミットの作成者
 
-### 例
-
-```
-feat(auth): add Google OAuth login
-fix(api): handle null response from DynamoDB
-docs: update README with new API endpoints
-test(cache): add unit tests for TTL expiration
-```
-
-## PR（Pull Request）
-
-- タイトルは Conventional Commits 形式
-- 本文にはやったこと・やらなかったことを簡潔に書く
-- レビュー前にセルフレビューする
+- メールはリポジトリの設定にある noreply（`44718552+mamezou@users.noreply.github.com`）を使う
+- git config を変えない

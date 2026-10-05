@@ -1,90 +1,34 @@
 ---
-inclusion: fileMatch
-fileMatchPattern: ["**/*.test.*", "**/*.spec.*", "**/playwright.config.*", "**/vitest.config.*"]
+inclusion: always
 ---
 
-# テスト規約
+# テスト方針
 
-## ユニットテスト（Vitest）
+## 道具
 
-### 構成
+- Vitest（`npx vitest run`）と fast-check
+- watch モードで起動しない
 
-- テストファイルは `__tests__/` に配置、または対象ファイルと同階層に `.test.ts` で配置
-- テストヘルパーは `__tests__/helpers/` に集約
+## プロパティベーステスト
 
-### 記述スタイル
+requirements に書いた性質を、1つの性質につき1つのテストにする。テスト名に requirements の番号を入れる。
 
-```typescript
-import { describe, it, expect, vi } from "vitest";
+少なくとも次の性質を持つ（`docs/plan.md` 5.2）。
 
-describe("関数名 or クラス名", () => {
-  describe("メソッド名 or ユースケース", () => {
-    it("should 期待される振る舞い when 条件", () => {
-      // Arrange
-      const input = "test";
+- 休業日に登録した日は、どの登録内容でも営業と判定しない
+- 臨時営業日に登録した日は、どの登録内容でも休業と判定しない
+- 例外がない日は、土・日・祝日だけが営業と判定される
+- 例外を登録してから削除すると、判定が登録前と一致する
+- 配信処理を同じ日に何回実行しても、同じ対象日への自動配信は1回以下になる
+- 配信対象日は常に実行日の翌日（日本時間）で、月末、年末、日付の境界でもずれない
+- 公開用データの各日の表示が、判定関数の結果と一致する
 
-      // Act
-      const result = targetFunction(input);
+生成器の範囲:
 
-      // Assert
-      expect(result).toBe("expected");
-    });
-  });
-});
-```
+- 日付には、月末、年末、うるう日、日本時間の0時前後（UTC の15時前後）を含める
+- 失敗したときは、fast-check が出す seed と反例を報告に書く
 
-### モック
+## 単体テスト
 
-- `vi.mock()` でモジュールモックを作成
-- 外部サービス呼び出しは必ずモックする
-- モックのリセットは `beforeEach` で `vi.clearAllMocks()`
-
-### カバレッジ
-
-- ビジネスロジック: 80% 以上
-- ユーティリティ: 90% 以上
-- UI コンポーネント: スナップショット + インタラクション
-
-## E2E テスト（Playwright）
-
-### 構成
-
-- テストファイルは `e2e/` ディレクトリに配置
-- Page Object パターンを使用する
-- フィクスチャは `e2e/fixtures/` に配置
-
-### 記述スタイル
-
-```typescript
-import { test, expect } from "@playwright/test";
-
-test.describe("機能名", () => {
-  test("ユーザーが〜したとき、〜が表示される", async ({ page }) => {
-    await page.goto("/target-page");
-    await page.getByRole("button", { name: "送信" }).click();
-    await expect(page.getByText("完了")).toBeVisible();
-  });
-});
-```
-
-### ベストプラクティス
-
-- `data-testid` よりも Accessible Role / Label でセレクタを書く
-- `waitForTimeout` は使わない。`waitForSelector` や `expect` の自動リトライを活用
-- テストは独立して実行可能にする（テスト間の依存を作らない）
-- CI では `--retries=2` を設定してフレーキーテストに対処
-
-### Playwright 設定の推奨
-
-```typescript
-// playwright.config.ts
-export default defineConfig({
-  testDir: "./e2e",
-  retries: process.env.CI ? 2 : 0,
-  use: {
-    baseURL: "http://localhost:3000",
-    trace: "on-first-retry",
-    screenshot: "only-on-failure",
-  },
-});
-```
+- 外部サービス（LINE Messaging API、DynamoDB、SSM）はモックする。テストから本物の LINE に送らない
+- 祝日CSVの取り込みは、固定の CSV で確かめる
