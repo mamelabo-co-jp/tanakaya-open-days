@@ -13,22 +13,25 @@
 時間が足りないときは、8 → 3.5 → 6.2 → 5.5 の順に削る。5.5 を削った場合、配信の動作は 3.3 の試験送信と P5 のテストで示す。
 
 - [ ] 1. 段階1：Spec の PR、開発の土台、Power の導入（レッスン1、2、3、5。遅くとも 10/6 01:00）
-  - [ ] 1.1 【承認】Spec、計画、steering の変更を PR にしてマージする
+  - [x] 1.1 【承認】Spec、計画、steering の変更を PR にしてマージする
     - `feature/spec` の requirements、design、tasks、`docs/plan.md`、steering 3本をコミットし、`main` 向けの PR を出す
     - _レッスン：1、2_
-  - [ ] 1.2 プロジェクトの土台を作る
+  - [x] 1.2 プロジェクトの土台を作る
     - `package.json`（`"type": "module"`、scripts は `test`、`typecheck`、`lint`、`format:check`、`build:site`）と `tsconfig.json`（`strict: true`）
     - devDependencies は TypeScript、Vitest、fast-check、ESLint（flat config）、typescript-eslint、Prettier、esbuild、tsx、@types/node、@types/aws-lambda。バージョンは固定する
     - `.gitignore` に `dist/` を足す
     - `npx vitest run`、`npx tsc --noEmit`、`npx eslint .` が通ることを確かめる
     - _要件：共通の制約_
-  - [ ] 1.3 【承認】hooks を作り、テンプレートの古い hook を消す
+  - [x] 1.3 【承認】hooks を作り、テンプレートの古い hook を消す
     - Kiro の公式ドキュメントでトリガーの種類を確かめてから作る
     - `src/` 配下の `.ts` の保存時に `npx vitest run` を実行する（単体テストとプロパティベーステスト）
     - `.kiro/specs/*/requirements.md` の保存時に、design と tasks への影響をエージェントに確かめさせる。直すのは依頼者の指示を受けてから
     - `auto-test.kiro.hook` と `auto-commit.kiro.hook` を消す（IDE 1.0 では動かない古い形式。自動コミットは承認のルールと合わない）
     - _レッスン：3_
-  - [ ] 1.4 【承認】AWS SAM の Power を導入する
+  - [x] 1.4 【承認】AWS SAM の Power を導入する
+    - 結果：`aws-sam` Power を導入。MCP サーバー（awslabs.aws-serverless-mcp-server 0.2.0）は `--with botocore[crt]`、`AWS_PROFILE=mamelabo`、`AWS_REGION=ap-northeast-1` で起動する。`--allow-write` は 5.4 の直前まで付けない
+    - 段階5での使い方：ビルドは `sam_build`、デプロイは `sam_deploy`、ログの確認は `sam_logs`。テンプレートの検証は `sam validate --lint` と `aws-infrastructure-as-code` Power の検証ツール。公開ページの S3 への反映は `aws s3 sync`（`update_webapp_frontend` は `deploy_webapp` で作ったプロジェクト向けのため使わない）
+    - hook の対象：`sam_deploy`、`sam_local_invoke`、`deploy_webapp`、`update_webapp_frontend`、`configure_domain`、`esm_guidance`、`esm_optimize`、`esm_kafka_troubleshoot`
     - レジストリで AWS SAM の Power を探して導入する。見つからないときは、依頼者に報告して判断を仰ぐ
     - 導入した Power のツールを一覧にし、段階5のどこで使うかを決める（テンプレートの作成、検証、デプロイ）
     - Power のツールでのデプロイはシェルを通らないため、今の hook（`cloud-change-check.sh`）では止まらない。そのツールにも、手順書の読み取りと承認を求める hook を足す
@@ -113,6 +116,8 @@
   - [ ] 5.3 手順書 `docs/runbooks/deploy.md` を書く
     - デプロイの流れ（1.4 の Power のツールを使う手順を含む）、承認の取り方、戻し方、凍結期間中に休業日を変える方法
   - [ ] 5.4 【承認】1.4 の Power を使ってテスト用スタックにデプロイし、公開ページを確かめる（`NotifyEnabled=false`）
+    - Power の MCP サーバーの `--allow-write` は、このデプロイの直前に有効にする。それまでは読み取り専用のまま使う
+    - `--allow-write` を有効にした後も、デプロイ系のツールは hook（`power-change-check.sh`）の承認条件で止める
     - スマートフォンの幅で表示を確かめ、デモ動画用の URL を控える
     - _要件：3.6、4.1〜4.8。レッスン：5_
   - [ ] 5.5 【承認】テスト用スタックで配信を有効にし、テスト用アカウントへの配信を1回確かめる

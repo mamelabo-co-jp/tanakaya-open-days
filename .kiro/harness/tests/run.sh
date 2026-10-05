@@ -159,6 +159,45 @@ check 0 "計画を読んだ後" require-reading.sh "$(write_in str_replace path 
 reset_state; prompt "[hook-bypass: resource-reading]"
 check 0 "バイパス" require-reading.sh "$(write_in fs_write path ".kiro/specs/open-days/requirements.md")"
 
+# --- power-change-check ---------------------------------------------------------
+power_in() { # power_in <tool_name> <action> <toolName> [session]
+  jq -cn --arg t "$1" --arg a "$2" --arg n "$3" --arg s "${4:-s1}" --arg cwd "$PROJ" \
+    '{hook_event_name:"preToolUse", cwd:$cwd, session_id:$s, tool_name:$t,
+      tool_input:{action:$a, powerName:"aws-sam", serverName:"awslabs.aws-serverless-mcp-server", toolName:$n, arguments:{}}}'
+}
+reset_state; prompt "デプロイして"
+check 2 "Power: sam_deploy" power-change-check.sh "$(power_in kiro_powers use sam_deploy)"
+check 2 "Power: deploy_webapp" power-change-check.sh "$(power_in kiro_powers use deploy_webapp)"
+check 2 "Power: update_frontend" power-change-check.sh "$(power_in kiro_powers use update_frontend)"
+check 2 "Power: configure_domain" power-change-check.sh "$(power_in kiro_powers use configure_domain)"
+for t in update_webapp_frontend sam_local_invoke esm_guidance esm_optimize esm_kafka_troubleshoot; do
+  check 2 "Power: $t" power-change-check.sh "$(power_in kiro_powers use "$t")"
+done
+for t in sam_init get_iac_guidance get_metrics secure_esm_sqs_policy describe_schema; do
+  check 0 "Power: $t は対象外" power-change-check.sh "$(power_in kiro_powers use "$t")"
+done
+HARNESS_CONFIG="$W/none.json" check 0 "設定ファイルが無ければ Power も止めない" power-change-check.sh "$(power_in kiro_powers use sam_deploy)"
+jq 'del(.cloudChange.powerTools)' "$ROOT/config.json" > "$W/no-power-tools.json"
+HARNESS_CONFIG="$W/no-power-tools.json" check 2 "powerTools が無ければ既定の一覧で止める" power-change-check.sh "$(power_in kiro_powers use sam_local_invoke)"
+check 2 "Power: camelCase のツール名" power-change-check.sh "$(power_in kiroPowers use sam_deploy)"
+check 2 "MCP ツールの直接呼び出し" power-change-check.sh "$(power_in "@aws-sam/sam_deploy" "" "")"
+check 0 "Power: sam_build は対象外" power-change-check.sh "$(power_in kiro_powers use sam_build)"
+check 0 "Power: sam_logs は対象外" power-change-check.sh "$(power_in kiro_powers use sam_logs)"
+check 0 "Power: activate は対象外" power-change-check.sh "$(power_in kiro_powers activate "")"
+check 0 "Power: readSteering は対象外" power-change-check.sh "$(power_in kiro_powers readSteering "")"
+check 0 "ほかの MCP ツールは対象外" power-change-check.sh "$(power_in "@line-bot/push_text_message" "" "")"
+check 0 "シェルのツールは対象外" power-change-check.sh "$(shell_in "sam deploy")"
+[[ "$(cut -f2-4 "$HARNESS_STATE_DIR/power-calls.log" | head -1)" == $'kiro_powers\tuse\tsam_deploy' ]] && pass=$((pass + 1)) || { fail=$((fail + 1)); echo "FAIL: power-calls.log にツール名が記録されていない"; }
+! grep -q 'arguments' "$HARNESS_STATE_DIR/power-calls.log" && pass=$((pass + 1)) || { fail=$((fail + 1)); echo "FAIL: power-calls.log に引数が記録された"; }
+reset_state; prompt $'[change-go: tanakaya]'
+check 2 "Power: 承認のみ・手順書未読" power-change-check.sh "$(power_in kiro_powers use sam_deploy)"
+reset_state; prompt "デプロイして"; readf "docs/runbooks/deploy.md"
+check 2 "Power: 手順書のみ・承認なし" power-change-check.sh "$(power_in kiro_powers use sam_deploy)"
+reset_state; prompt $'手順書どおりに\n[change-go: tanakaya]'; readf "docs/runbooks/deploy.md"
+check 0 "Power: 承認と手順書の両方" power-change-check.sh "$(power_in kiro_powers use sam_deploy)"
+reset_state; prompt "[hook-bypass: cloud-change]"
+check 0 "Power: バイパス" power-change-check.sh "$(power_in kiro_powers use sam_deploy)"
+
 # --- 設定ファイル ---------------------------------------------------------------
 reset_state; prompt "x"
 HARNESS_CONFIG="$W/none.json" check 0 "設定ファイルが無ければ何もしない" cloud-change-check.sh "$(shell_in "sam deploy")"

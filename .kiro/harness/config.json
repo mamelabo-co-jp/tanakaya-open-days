@@ -6,14 +6,32 @@
   "harnessChange": {
     "enabled": true,
     "token": "[harness-go]",
-    "excludePatterns": [".kiro/specs/", ".kiro/harness/state/"]
+    "excludePatterns": [
+      ".kiro/specs/",
+      ".kiro/harness/state/"
+    ]
   },
   "cloudChange": {
     "enabled": true,
+    "powerProject": "tanakaya",
+    "powerTools": [
+      "sam_deploy",
+      "sam_local_invoke",
+      "deploy_webapp",
+      "update_webapp_frontend",
+      "update_frontend",
+      "configure_domain",
+      "esm_guidance",
+      "esm_optimize",
+      "esm_kafka_troubleshoot"
+    ],
     "projects": [
       {
         "name": "tanakaya",
-        "clis": ["aws", "sam"],
+        "clis": [
+          "aws",
+          "sam"
+        ],
         "cwdMatch": "",
         "runbookPattern": "(^|/)docs/runbooks/[^/]+\\.md$",
         "runbookHint": "docs/runbooks/ 配下の .md",

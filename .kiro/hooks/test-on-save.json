@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "保存時にテストを実行",
+      "trigger": "PostFileSave",
+      "description": "src/ 配下の TypeScript をエージェントが保存したときに、単体テストとプロパティベーステスト（npm test = vitest run）を実行する。失敗は警告として表示する。",
+      "matcher": "(^|/)src/.*\\.ts$",
+      "action": {
+        "type": "command",
+        "command": "npm test --silent 1>&2",
+        "timeout": 180
+      }
+    }
+  ]
+}
