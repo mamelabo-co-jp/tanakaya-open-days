@@ -16,7 +16,10 @@ tanakaya-open-days/
 ├── public/                # 公開ページ（静的な HTML、CSS、JS）
 ├── data/
 │   └── settings.example.json   # 見本。実ファイルの settings.json は git で管理しない
+├── scripts/               # ビルド（設定の検証、公開用データの生成）
 ├── template.yaml          # AWS SAM
+├── samconfig.toml         # sam deploy の設定（test と prod）
+├── dist/                  # ビルドの成果物。git で管理しない
 ├── docs/
 │   ├── plan.md            # 計画の正本
 │   └── runbooks/          # デプロイなど、クラウドを変える操作の手順書
