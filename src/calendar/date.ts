@@ -109,3 +109,28 @@ export const weekdayOf = (date: IsoDate): Weekday => {
 /** 月の日数 */
 export const daysInMonth = (year: number, month: number): number =>
   partsOfUtcMs(utcMsOf({ year, month: month + 1, day: 1 }) - MS_PER_DAY).day;
+
+/** 年と月（month は 1〜12） */
+export type YearMonth = { year: number; month: number };
+
+/** 日付の年と月 */
+export const yearMonthOf = (date: IsoDate): YearMonth => {
+  const { year, month } = parseOrThrow(date);
+  return { year, month };
+};
+
+/** 年月に月数を足す（負の数で引く） */
+export const addMonths = ({ year, month }: YearMonth, months: number): YearMonth => {
+  if (!Number.isInteger(months)) {
+    throw new InvalidDateError(`Months must be an integer: ${months}`);
+  }
+  const index = year * 12 + (month - 1) + months;
+  return { year: Math.floor(index / 12), month: (((index % 12) + 12) % 12) + 1 };
+};
+
+/** 月の1日 */
+export const firstDayOf = ({ year, month }: YearMonth): IsoDate => isoDateOf(year, month, 1);
+
+/** 月の末日 */
+export const lastDayOf = ({ year, month }: YearMonth): IsoDate =>
+  isoDateOf(year, month, daysInMonth(year, month));
