@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "harness: Power のツールによるクラウド変更の停止",
+      "trigger": "PreToolUse",
+      "description": "AWS SAM Power の変更系ツール（sam_deploy、sam_local_invoke、deploy_webapp、update_webapp_frontend、configure_domain、esm_* など。一覧は .kiro/harness/config.json の cloudChange.powerTools）を、docs/runbooks/ の読み取りと [change-go: tanakaya] だけの行がある場合にだけ通す。シェルを通らないデプロイを止めるため。",
+      "matcher": "kiro_powers|kiroPowers|@.*",
+      "action": {
+        "type": "command",
+        "command": "bash .kiro/harness/hooks/power-change-check.sh",
+        "timeout": 10
+      }
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "requirements 変更時の影響確認",
+      "trigger": "PostFileSave",
+      "description": ".kiro/specs/ 配下の requirements.md が保存されたときに、同じ Spec の design.md と tasks.md への影響をエージェントに確かめさせる。",
+      "matcher": "(^|/)\\.kiro/specs/[^/]+/requirements\\.md$",
+      "action": {
+        "type": "agent",
+        "prompt": "requirements.md が変更されました。同じフォルダーの design.md と tasks.md を読み、変更された要件の番号ごとに、design と tasks の食い違い、参照している番号のずれ、対応するタスクの漏れを一覧にして依頼者に報告してください。design.md と tasks.md の修正は、依頼者の指示を受けるまで行わないでください。"
+      }
+    }
+  ]
+}
