@@ -2,3 +2,4 @@
 node_modules/
 .aws-sam/
 .kiro/harness/state/
+data/settings.json
