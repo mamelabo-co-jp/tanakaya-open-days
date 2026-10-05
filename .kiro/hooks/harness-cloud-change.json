@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "harness: クラウド変更コマンドの停止",
+      "trigger": "PreToolUse",
+      "description": "aws / sam の変更系コマンド（sam deploy、aws lambda invoke 等）を、docs/runbooks/ の読み取りと [change-go: tanakaya] だけの行がある場合にだけ通す。",
+      "matcher": "shell|execute_bash|executeBash|execute_cmd|control_bash_process|controlBashProcess",
+      "action": {
+        "type": "command",
+        "command": "bash .kiro/harness/hooks/cloud-change-check.sh",
+        "timeout": 10
+      }
+    }
+  ]
+}

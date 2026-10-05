@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "harness: 読み取ったファイルを記録",
+      "trigger": "PostToolUse",
+      "description": "手順書・必読資料を読んだかの判定用に、読み取りツールで読んだファイルを .kiro/harness/state/reads.log に記録する。",
+      "matcher": "read|read_file|read_files|readFile|readFiles|fs_read|fsRead|read_code|readCode|readMultipleFiles",
+      "action": {
+        "type": "command",
+        "command": "bash .kiro/harness/hooks/record-read.sh",
+        "timeout": 10
+      }
+    }
+  ]
+}

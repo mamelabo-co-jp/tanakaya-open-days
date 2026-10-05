@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "harness: 依頼者の最後の入力を記録",
+      "trigger": "UserPromptSubmit",
+      "description": "承認の文字列（[change-go: tanakaya] / [harness-go]）とバイパスの文字列の判定用に、最後のプロンプトを .kiro/harness/state/ に記録する。プロンプトは止めない。",
+      "action": {
+        "type": "command",
+        "command": "bash .kiro/harness/hooks/record-prompt.sh",
+        "timeout": 10
+      }
+    }
+  ]
+}

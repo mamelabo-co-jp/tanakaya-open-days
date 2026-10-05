@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "harness: 必読資料の先読み",
+      "trigger": "PreToolUse",
+      "description": ".kiro/specs/*/requirements.md の編集前に docs/plan.md の読み取りを求める。",
+      "matcher": "write|fs_write|fsWrite|fs_append|fsAppend|str_replace|strReplace|delete_file|deleteFile|smart_relocate|smartRelocate|semantic_rename|semanticRename",
+      "action": {
+        "type": "command",
+        "command": "bash .kiro/harness/hooks/require-reading.sh",
+        "timeout": 10
+      }
+    }
+  ]
+}

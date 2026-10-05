@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "harness: .kiro 配下の書き換えの保護",
+      "trigger": "PreToolUse",
+      "description": ".kiro/ 配下（.kiro/specs/ と .kiro/harness/state/ を除く）の書き換えを、[harness-go] だけの行がある場合にだけ通す。",
+      "matcher": "write|shell|fs_write|fsWrite|fs_append|fsAppend|str_replace|strReplace|delete_file|deleteFile|smart_relocate|smartRelocate|semantic_rename|semanticRename|execute_bash|executeBash|execute_cmd|control_bash_process|controlBashProcess",
+      "action": {
+        "type": "command",
+        "command": "bash .kiro/harness/hooks/kiro-change-check.sh",
+        "timeout": 10
+      }
+    }
+  ]
+}
