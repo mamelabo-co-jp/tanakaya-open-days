@@ -45,23 +45,23 @@
     - Kiro Web のクラウド構成を設定し、ローカルの `.kiro` を同期する
     - _要件：7.1、7.2。レッスン：6、ボーナス1_
 
-- [ ] 2. 段階2：営業日の判定とプロパティベーステスト（レッスン4。遅くとも 10/6 04:00）
-  - [ ] 2.1 日付の関数を作る（`src/calendar/date.ts`）
+- [x] 2. 段階2：営業日の判定とプロパティベーステスト（レッスン4。遅くとも 10/6 04:00）
+  - [x] 2.1 日付の関数を作る（`src/calendar/date.ts`）
     - `WEEKDAYS`、`toJstDate`、`addDays`、`weekdayOf`、`isIsoDate`。実行環境のタイムゾーンを読む API は使わない
     - 単体テスト：UTC の 14:59 と 15:00、月末、年末、2月29日、存在しない日付
     - _要件：共通の制約、5.2_
-  - [ ] 2.2 判定機能を作る（`src/calendar/judge.ts`）
+  - [x] 2.2 判定機能を作る（`src/calendar/judge.ts`）
     - `judgeDay`、`toBusinessRules`
     - _要件：1.1〜1.5_
-  - [ ] 2.3 P1〜P4 のプロパティベーステストを書く（`src/calendar/judge.property.test.ts`）
+  - [x] 2.3 P1〜P4 のプロパティベーステストを書く（`src/calendar/judge.property.test.ts`）
     - 生成器（日付、営業曜日、有効な設定）は `src/testing/arbitraries.ts` にまとめ、後の段階でも使う
     - _要件：1.2〜1.5。性質：P1〜P4_
-  - [ ] 2.4 設定の検証を作る（`src/settings/validate.ts`）
+  - [x] 2.4 設定の検証を作る（`src/settings/validate.ts`）
     - 単体テスト：規則ごとの違反、違反をすべて返すこと、営業曜日が不正なときに例外の曜日の検証を飛ばすこと
     - _要件：2.1、2.3〜2.9_
-  - [ ] 2.5 P9 のプロパティベーステストを書く（`src/settings/validate.property.test.ts`）
+  - [x] 2.5 P9 のプロパティベーステストを書く（`src/settings/validate.property.test.ts`）
     - _要件：2.3、2.5、2.6。性質：P9_
-  - [ ] 2.6 見本の設定 `data/settings.example.json` を作り、検証を通ることを単体テストで確かめる
+  - [x] 2.6 見本の設定 `data/settings.example.json` を作り、検証を通ることを単体テストで確かめる
     - _要件：2.10_
 
 - [ ] 3. 段階3：MCP、カスタムエージェント、自作 Power（レッスン6、7、ボーナス2。遅くとも 10/6 07:30）
