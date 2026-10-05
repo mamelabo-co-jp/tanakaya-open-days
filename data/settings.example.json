@@ -1,0 +1,7 @@
+{
+  "openWeekdays": ["sun"],
+  "closedDates": ["2026-10-18"],
+  "specialOpenDates": ["2026-10-21"],
+  "businessHours": { "open": "11:00", "close": "15:00" },
+  "notifyTime": "18:00"
+}
