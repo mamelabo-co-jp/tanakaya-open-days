@@ -6,6 +6,8 @@ import fc from "fast-check";
 
 import { WEEKDAYS, addDays, daysInMonth, isoDateOf, weekdayOf } from "../calendar/date";
 import type { IsoDate, Weekday } from "../calendar/date";
+import { buildCalendarData } from "../publish/buildCalendarData";
+import type { CalendarData } from "../publish/buildCalendarData";
 import type { HhMm, Settings } from "../settings/validate";
 
 export const MIN_YEAR = 2024;
@@ -129,3 +131,22 @@ export const shiftToMatch = (
   }
   return null;
 };
+
+/** 有効な設定と任意の時刻から作った公開用データ。生成に使った設定と時刻も返す */
+export const arbCalendarInput = (): fc.Arbitrary<{
+  settings: Settings;
+  now: Date;
+  data: CalendarData;
+}> =>
+  fc
+    .tuple(arbValidSettings(), arbInstant())
+    .map(([settings, now]) => ({ settings, now, data: buildCalendarData({ settings, now }) }));
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const JST_OFFSET_MS = 9 * 60 * 60 * 1000;
+
+/** 日本時間で date の日に当たる任意の時刻（0:00:00.000〜23:59:59.999） */
+export const arbInstantOnJstDate = (date: IsoDate): fc.Arbitrary<Date> =>
+  fc
+    .integer({ min: 0, max: MS_PER_DAY - 1 })
+    .map((offset) => new Date(Date.parse(`${date}T00:00:00.000Z`) - JST_OFFSET_MS + offset));

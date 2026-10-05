@@ -86,22 +86,23 @@
     - `e2e-testing`、`guardrails-setup`、`prod-ops`、`project-init`、`update-docs`
 
 - [ ] 4. 段階4：公開用データと前日配信のロジック（レッスン4、ボーナス1。遅くとも 10/6 10:00）
-  - [ ] 4.1 公開用データを作る（`buildCalendarData`、`parseCalendarData`）と P7
+  - [x] 4.1 公開用データを作る（`buildCalendarData`、`parseCalendarData`）と P7
     - _要件：3.1〜3.5。性質：P7_
-  - [ ] 4.2 「今日」と月の選択を作る（`selectToday`、`selectMonths`）と P8
+  - [x] 4.2 「今日」と月の選択を作る（`selectToday`、`selectMonths`）と P8
     - _要件：4.2〜4.5。性質：P8_
-  - [ ] 4.3 配信の計画を作る（`planNotification`）と P6
+  - [x] 4.3 配信の計画を作る（`planNotification`）と P6
     - _要件：5.2〜5.6。性質：P6_
   - [ ] 4.4 【クラウドセッション】案内の文面を作る（`buildMessage`）と単体テスト
     - 4.1〜4.3 を push してから、Kiro Web のクラウドセッションで実装して PR にする。使えないときは手元で実装する
+    - 現状：`src/notify/message.ts` に型（`MessageInput`）と関数の形だけがあり、`buildMessage` は呼ぶと `NotImplementedError` を投げる。配信処理はこの例外では配信記録を作らずに止まる。実装したら、`runNotify.test.ts` の「buildMessage is not implemented」のテストを消す
     - _要件：5.7。レッスン：ボーナス1_
-  - [ ] 4.5 配信処理の本体を作る（`runNotify`）と P5
+  - [x] 4.5 配信処理の本体を作る（`runNotify`）と P5
     - 単体テスト：SSM の失敗、記録の重複、送信の失敗、`markSent` の失敗、対象日が公開用データにない場合
     - _要件：5.3〜5.6、5.8、6.1〜6.4。性質：P5_
-  - [ ] 4.6 LINE への送信を作る（`lineClient.ts`）
+  - [x] 4.6 LINE への送信を作る（`lineClient.ts`）
     - `fetch` を偽物にした単体テストで、2xx、429、500、10秒の打ち切りを確かめる。本物の LINE には送らない
     - _要件：5.9、6.4、7.1_
-  - [ ] 4.7 配信記録と Lambda の入口を作る（`deliveryStore.ts`、`handler.ts`）
+  - [x] 4.7 配信記録と Lambda の入口を作る（`deliveryStore.ts`、`handler.ts`）
     - 条件付き PutItem で `exists` を返すこと、ログにトークンを出さないことを確かめる
     - _要件：6.2、6.6、7.1、7.2_
 

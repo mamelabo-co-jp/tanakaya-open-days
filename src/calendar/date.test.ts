@@ -3,11 +3,15 @@ import { describe, expect, it } from "vitest";
 import {
   InvalidDateError,
   addDays,
+  addMonths,
   daysInMonth,
+  firstDayOf,
   isIsoDate,
   isoDateOf,
+  lastDayOf,
   toJstDate,
   weekdayOf,
+  yearMonthOf,
 } from "./date";
 import type { IsoDate } from "./date";
 
@@ -110,5 +114,23 @@ describe("daysInMonth", () => {
     expect(daysInMonth(2028, 2)).toBe(29);
     expect(daysInMonth(2026, 12)).toBe(31);
     expect(daysInMonth(2026, 4)).toBe(30);
+  });
+});
+
+describe("month helpers", () => {
+  it("should return the year and month of a date", () => {
+    expect(yearMonthOf(d("2026-10-31"))).toEqual({ year: 2026, month: 10 });
+  });
+
+  it("should add months across the year end", () => {
+    expect(addMonths({ year: 2026, month: 10 }, 11)).toEqual({ year: 2027, month: 9 });
+    expect(addMonths({ year: 2026, month: 12 }, 1)).toEqual({ year: 2027, month: 1 });
+    expect(addMonths({ year: 2027, month: 1 }, -1)).toEqual({ year: 2026, month: 12 });
+  });
+
+  it("should return the first and last day of a month", () => {
+    expect(firstDayOf({ year: 2026, month: 10 })).toBe("2026-10-01");
+    expect(lastDayOf({ year: 2028, month: 2 })).toBe("2028-02-29");
+    expect(lastDayOf({ year: 2027, month: 9 })).toBe("2027-09-30");
   });
 });
