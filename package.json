@@ -12,7 +12,9 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format:check": "prettier --check .",
-    "build:site": "tsx scripts/build-site.ts"
+    "build:site": "tsx scripts/build-site.ts",
+    "build:lambda": "tsx scripts/build-lambda.ts",
+    "build": "npm run build:site && npm run build:lambda"
   },
   "devDependencies": {
     "@aws-sdk/client-dynamodb": "3.1146.0",

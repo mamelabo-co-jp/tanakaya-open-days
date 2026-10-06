@@ -1,0 +1,228 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  田中屋 営業日カレンダー。公開ページ（S3 + CloudFront）と、LINE の前日配信
+  （EventBridge Scheduler + Lambda + DynamoDB）。設計は .kiro/specs/open-days/design.md。
+
+Parameters:
+  NotifyEnabled:
+    Type: String
+    AllowedValues: ["true", "false"]
+    Default: "false"
+    Description: >
+      true のときだけ前日配信の起動を有効にする（要件 7.3）。テスト用スタックは false のまま。
+      true にすると、LINE 公式アカウントの友だち全員に配信される
+  LineTokenParameterName:
+    Type: String
+    AllowedPattern: "^/[A-Za-z0-9/_.-]+$"
+    Description: チャネルアクセストークンを置いた SSM パラメータ（SecureString）の名前（要件 7.2）
+  NotifyScheduleExpression:
+    Type: String
+    AllowedPattern: "^cron\\(.+\\)$"
+    Default: "cron(0 18 * * ? *)"
+    Description: 前日配信の時刻（日本時間）。npm run build:site が dist/deploy-parameters.txt に書く値を渡す
+
+Conditions:
+  IsNotifyEnabled: !Equals [!Ref NotifyEnabled, "true"]
+
+Resources:
+  # ---------------------------------------------------------------- 公開ページ（要件 4.1）
+  SiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireOldVersions
+            Status: Enabled
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 30
+
+  SiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref SiteBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: HttpsOnly
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:*"
+            Resource:
+              - !GetAtt SiteBucket.Arn
+              - !Sub "${SiteBucket.Arn}/*"
+            Condition:
+              Bool:
+                "aws:SecureTransport": "false"
+          - Sid: CloudFrontReadOnly
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub "${SiteBucket.Arn}/*"
+            Condition:
+              StringEquals:
+                "AWS:SourceArn": !Sub "arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${SiteDistribution}"
+
+  SiteOriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub "${AWS::StackName}-site-oac"
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  SiteResponseHeadersPolicy:
+    Type: AWS::CloudFront::ResponseHeadersPolicy
+    Properties:
+      ResponseHeadersPolicyConfig:
+        Name: !Sub "${AWS::StackName}-security-headers"
+        SecurityHeadersConfig:
+          ContentSecurityPolicy:
+            ContentSecurityPolicy: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; object-src 'none'"
+            Override: true
+          ContentTypeOptions:
+            Override: true
+          FrameOptions:
+            FrameOption: DENY
+            Override: true
+          ReferrerPolicy:
+            ReferrerPolicy: strict-origin-when-cross-origin
+            Override: true
+          StrictTransportSecurity:
+            AccessControlMaxAgeSec: 31536000
+            IncludeSubdomains: true
+            Override: true
+
+  SiteDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Comment: !Sub "${AWS::StackName} public calendar"
+        Enabled: true
+        DefaultRootObject: index.html
+        HttpVersion: http2and3
+        IPV6Enabled: true
+        PriceClass: PriceClass_200
+        Origins:
+          - Id: SiteBucket
+            DomainName: !GetAtt SiteBucket.RegionalDomainName
+            OriginAccessControlId: !GetAtt SiteOriginAccessControl.Id
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+        DefaultCacheBehavior:
+          TargetOriginId: SiteBucket
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD]
+          CachedMethods: [GET, HEAD]
+          Compress: true
+          # Managed-CachingOptimized。オブジェクトの Cache-Control（max-age=300）に従う
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+          ResponseHeadersPolicyId: !Ref SiteResponseHeadersPolicy
+
+  # ---------------------------------------------------------------- 前日配信（要件 5〜7）
+  DeliveryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: targetDate
+          AttributeType: S
+      KeySchema:
+        - AttributeName: targetDate
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: expiresAt
+        Enabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+
+  NotifyLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${AWS::StackName}-notify"
+      RetentionInDays: 90
+
+  NotifyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: 前日配信（翌日の営業を LINE の友だち全員に送る）
+      CodeUri: dist/lambda
+      Handler: index.handler
+      Runtime: nodejs24.x
+      Architectures: [arm64]
+      MemorySize: 256
+      Timeout: 30
+      LoggingConfig:
+        LogGroup: !Ref NotifyLogGroup
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref SiteBucket
+          TABLE_NAME: !Ref DeliveryTable
+          LINE_TOKEN_PARAMETER_NAME: !Ref LineTokenParameterName
+          PAGE_URL: !Sub "https://${SiteDistribution.DomainName}/"
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Sid: ReadCalendarData
+              Effect: Allow
+              Action: s3:GetObject
+              Resource: !Sub "${SiteBucket.Arn}/calendar.json"
+            - Sid: WriteDeliveryRecords
+              Effect: Allow
+              Action:
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+              Resource: !GetAtt DeliveryTable.Arn
+            - Sid: ReadLineToken
+              Effect: Allow
+              Action: ssm:GetParameter
+              Resource: !Sub "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${LineTokenParameterName}"
+      Events:
+        NotifySchedule:
+          Type: ScheduleV2
+          Properties:
+            Description: 前日配信の起動（日本時間）
+            ScheduleExpression: !Ref NotifyScheduleExpression
+            ScheduleExpressionTimezone: Asia/Tokyo
+            State: !If [IsNotifyEnabled, ENABLED, DISABLED]
+            RetryPolicy:
+              MaximumRetryAttempts: 2
+              MaximumEventAgeInSeconds: 3600
+
+Outputs:
+  SiteUrl:
+    Description: 公開ページの URL
+    Value: !Sub "https://${SiteDistribution.DomainName}/"
+  SiteBucketName:
+    Description: aws s3 sync の宛先
+    Value: !Ref SiteBucket
+  DistributionId:
+    Description: aws cloudfront create-invalidation の --distribution-id
+    Value: !Ref SiteDistribution
+  DeliveryTableName:
+    Description: 配信記録の DynamoDB テーブル
+    Value: !Ref DeliveryTable
+  NotifyFunctionName:
+    Description: 前日配信の Lambda（手で起動しない）
+    Value: !Ref NotifyFunction
+  NotifyEnabled:
+    Description: 前日配信の起動が有効か
+    Value: !Ref NotifyEnabled
