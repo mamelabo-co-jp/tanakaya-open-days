@@ -2,11 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import { isoDateOf } from "../calendar/date";
 import type { CalendarData } from "../publish/buildCalendarData";
+import type { HhMm } from "../settings/validate";
 import { buildMessage } from "./message";
 import { NoticeKind } from "./plan";
 
 const PAGE_URL = "https://example.cloudfront.net/";
-const HOURS: CalendarData["businessHours"] = { open: "11:00", close: "15:00" };
+const HOURS: CalendarData["businessHours"] = { open: "11:00" as HhMm, close: "15:00" as HhMm };
 
 // 2026-10-11 は日曜、2026-10-21 は水曜
 const SUNDAY = isoDateOf(2026, 10, 11);
