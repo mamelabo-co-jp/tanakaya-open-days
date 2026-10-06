@@ -1,0 +1,37 @@
+# sam deploy の設定。秘密情報は書かない（SSM パラメータの名前だけ）。
+# 手順は docs/runbooks/deploy.md。sam deploy は hook の承認条件で止まる。
+version = 0.1
+
+# テスト用スタック。前日配信は無効（NotifyEnabled=false）のまま使う
+[test.global.parameters]
+stack_name = "tanakaya-open-days-test"
+region = "ap-northeast-1"
+profile = "mamelabo"
+
+[test.build.parameters]
+cached = false
+
+[test.deploy.parameters]
+capabilities = "CAPABILITY_IAM"
+resolve_s3 = true
+confirm_changeset = false
+fail_on_empty_changeset = false
+parameter_overrides = "NotifyEnabled=false LineTokenParameterName=/tanakaya/prod/line-channel-access-token"
+tags = "project=tanakaya-open-days stage=test"
+
+# 本番スタック。配信を有効にするのは、依頼者の指示を受けてから（.kiro/steering/line-messaging.md）
+[prod.global.parameters]
+stack_name = "tanakaya-open-days-prod"
+region = "ap-northeast-1"
+profile = "mamelabo"
+
+[prod.build.parameters]
+cached = false
+
+[prod.deploy.parameters]
+capabilities = "CAPABILITY_IAM"
+resolve_s3 = true
+confirm_changeset = false
+fail_on_empty_changeset = false
+parameter_overrides = "NotifyEnabled=false LineTokenParameterName=/tanakaya/prod/line-channel-access-token"
+tags = "project=tanakaya-open-days stage=prod"

@@ -111,14 +111,14 @@ LINE 公式アカウントは本番の1つだけを使い、テスト用アカ�
 
 - [ ] 5. 段階5：公開ページ、SAM、テスト用スタック（レッスン5。遅くとも 10/6 12:45）
   - テスト用スタックは配信を無効（`NotifyEnabled=false`）のままにする。配信を有効にした確認（旧 5.5）は行わない
-  - [ ] 5.1 公開ページとビルドを作る
+  - [x] 5.1 公開ページとビルドを作る
     - `public/index.html`、`public/style.css`、`src/publish/page.ts`、`scripts/build-site.ts`
     - 単体テスト：見本の設定でビルドが通ること、壊れた設定で終了コード1になり成果物を書かないこと
     - _要件：2.2、2.9、3.1、3.2、4.1〜4.8_
-  - [ ] 5.2 `template.yaml` と `samconfig.toml`（`test` と `prod`）を、1.4 の Power を使って書く
+  - [x] 5.2 `template.yaml` と `samconfig.toml`（`test` と `prod`）を、1.4 の Power を使って書く
     - `sam validate --lint` と Power の検証を通す
     - _要件：3.6、4.1、5.1、6.2、6.6、7.2〜7.4。レッスン：5_
-  - [ ] 5.3 手順書 `docs/runbooks/deploy.md` を書く
+  - [x] 5.3 手順書 `docs/runbooks/deploy.md` を書く
     - デプロイの流れ（1.4 の Power のツールを使う手順を含む）、承認の取り方、戻し方、凍結期間中に休業日を変える方法
   - [ ] 5.4 【承認】1.4 の Power を使ってテスト用スタックにデプロイし、公開ページを確かめる（`NotifyEnabled=false`）
     - Power の MCP サーバーの `--allow-write` は、このデプロイの直前に有効にする。それまでは読み取り専用のまま使う

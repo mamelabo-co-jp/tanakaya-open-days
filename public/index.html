@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>田中屋 営業日カレンダー</title>
+    <meta name="description" content="ヴィーガンラーメン田中屋の営業日と営業時間のご案内です。" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <h1>田中屋 営業日カレンダー</h1>
+    </header>
+    <main>
+      <section class="today" aria-labelledby="today-heading">
+        <h2 id="today-heading">今日の営業</h2>
+        <p id="today-date" class="today-date"></p>
+        <p id="today-status" class="status" aria-live="polite">読み込み中です…</p>
+        <p id="today-hours" class="today-hours"></p>
+      </section>
+      <section class="calendar" aria-labelledby="calendar-heading">
+        <h2 id="calendar-heading">営業カレンダー</h2>
+        <div id="months" class="months"></div>
+        <ul class="legend" aria-label="カレンダーの見方">
+          <li><span class="legend-mark day-open">営業</span>通常の営業日</li>
+          <li><span class="legend-mark day-specialOpen">臨時営業</span>臨時に営業する日</li>
+          <li><span class="legend-mark day-specialClosed">臨時休業</span>臨時にお休みする日</li>
+          <li><span class="legend-mark day-closed">休</span>定休日</li>
+        </ul>
+      </section>
+      <section class="links" aria-labelledby="links-heading">
+        <h2 id="links-heading">最新のお知らせ</h2>
+        <p>前日の夕方に、公式LINEで翌日の営業をお知らせします。</p>
+        <ul>
+          <li><a href="https://lin.ee/OReUh6e">公式LINEを友だち追加する</a></li>
+          <li><a href="https://instagram.com/tanakaya_ramen">Instagram（@tanakaya_ramen）</a></li>
+        </ul>
+      </section>
+    </main>
+    <noscript>
+      <p class="noscript">
+        営業日の表示には JavaScript を使います。公式LINEでもご確認いただけます。
+      </p>
+    </noscript>
+  </body>
+</html>

@@ -1,0 +1,210 @@
+/* 田中屋 営業日カレンダー。幅 360px のスマートフォンを基準にする（要件 4.8） */
+
+:root {
+  --text: #222;
+  --muted: #666;
+  --bg: #fffdf8;
+  --line: #ddd5c8;
+  --open: #1f6f43;
+  --open-bg: #e3f3e8;
+  --special-open: #0b5394;
+  --special-open-bg: #dceafa;
+  --special-closed: #a12a1c;
+  --special-closed-bg: #fbe3df;
+  --closed: #6b6b6b;
+  --focus: #b35900;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family:
+    system-ui,
+    -apple-system,
+    "Hiragino Sans",
+    "Noto Sans JP",
+    sans-serif;
+  line-height: 1.6;
+}
+
+.site-header,
+main {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.site-header h1 {
+  margin: 1rem 0 0.5rem;
+  font-size: 1.25rem;
+}
+
+h2 {
+  margin: 1.5rem 0 0.5rem;
+  font-size: 1.05rem;
+}
+
+.today {
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  background: #fff;
+}
+
+.today h2 {
+  margin-top: 0;
+}
+
+.today-date,
+.today-hours {
+  margin: 0.25rem 0;
+}
+
+.status {
+  margin: 0.25rem 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.status-open {
+  color: var(--open);
+}
+
+.status-specialOpen {
+  color: var(--special-open);
+}
+
+.status-specialClosed {
+  color: var(--special-closed);
+}
+
+.status-closed {
+  color: var(--closed);
+}
+
+.status-unavailable {
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.month {
+  width: 100%;
+  margin-bottom: 1rem;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.month caption {
+  padding: 0.25rem 0;
+  font-weight: 700;
+  text-align: left;
+}
+
+.month th {
+  padding: 0.25rem 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+.month th:first-child {
+  color: var(--special-closed);
+}
+
+.month td {
+  height: 3.25rem;
+  padding: 0.125rem;
+  border: 1px solid var(--line);
+  vertical-align: top;
+  text-align: center;
+}
+
+.day-number,
+.day-mark {
+  display: block;
+}
+
+.day-number {
+  font-size: 0.9rem;
+}
+
+.day-mark {
+  font-size: 0.625rem;
+  line-height: 1.2;
+  word-break: break-all;
+}
+
+.day-open {
+  background: var(--open-bg);
+  color: var(--open);
+  font-weight: 700;
+}
+
+.day-specialOpen {
+  background: var(--special-open-bg);
+  color: var(--special-open);
+  font-weight: 700;
+}
+
+.day-specialClosed {
+  background: var(--special-closed-bg);
+  color: var(--special-closed);
+  font-weight: 700;
+}
+
+.day-closed {
+  color: var(--closed);
+}
+
+td[aria-current="date"] {
+  outline: 3px solid var(--focus);
+  outline-offset: -3px;
+}
+
+.legend {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+}
+
+.legend li {
+  margin: 0.25rem 0;
+}
+
+.legend-mark {
+  display: inline-block;
+  min-width: 4.5rem;
+  margin-right: 0.5rem;
+  padding: 0 0.25rem;
+  border: 1px solid var(--line);
+  text-align: center;
+}
+
+.links ul {
+  padding-left: 1.25rem;
+}
+
+.links li {
+  margin: 0.5rem 0;
+}
+
+a {
+  color: var(--special-open);
+}
+
+a:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.noscript {
+  max-width: 40rem;
+  margin: 1rem auto;
+  padding: 0 1rem;
+}
