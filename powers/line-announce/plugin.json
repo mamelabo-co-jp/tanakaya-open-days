@@ -1,0 +1,23 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "line-announce",
+  "version": "0.1.0",
+  "description": "LINE 公式アカウントの告知を安全に扱う Power。LINE Bot MCP Server を、トークンを SSM から読む形で接続し、依頼者宛ての push で文面を確かめてから告知する手順を持つ",
+  "author": {
+    "name": "mamelabo-co-jp"
+  },
+  "keywords": [
+    "line",
+    "LINE",
+    "line-bot",
+    "announce",
+    "告知",
+    "配信",
+    "試験送信",
+    "push",
+    "broadcast",
+    "messaging-api"
+  ],
+  "repository": "https://github.com/mamelabo-co-jp/tanakaya-open-days",
+  "license": "MIT"
+}

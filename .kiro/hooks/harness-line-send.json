@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "harness: LINE 送信の制限",
+      "trigger": "PreToolUse",
+      "description": "LINE Bot MCP Server のツールを、依頼者宛ての push（userId なし）と get_message_quota だけに限る。broadcast 系、リッチメニューの変更、友だちの一覧などは止める。本番アカウントしかないため。",
+      "matcher": "kiro_powers|kiroPowers|@.*|mcp_.*",
+      "action": {
+        "type": "command",
+        "command": "bash .kiro/harness/hooks/line-send-check.sh",
+        "timeout": 10
+      }
+    }
+  ]
+}

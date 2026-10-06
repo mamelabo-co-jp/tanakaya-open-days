@@ -1,130 +1,42 @@
 ---
 name: unit-tester
 description: >
-  単体テスト・統合テストの作成・実行エージェント。
-  Vitest を使用したテストの作成、実行、デバッグを行う。
-  「テスト作成」「テスト実行」「TDD」等のリクエストで使用。
+  単体テストとプロパティベーステストの作成・実行エージェント。Vitest と fast-check を使い、
+  requirements の受け入れ基準と正しさの性質（P1〜P9）からテストを書く。
+  「テスト作成」「テスト実行」「プロパティベーステスト」等のリクエストで使用。
 tools: ["read", "write", "shell"]
-model: claude-sonnet-4-5-20250929
+includeMcpJson: false
+includePowers: false
 resources:
-  - "file://docs/design/*.md"
+  - "file://.kiro/specs/open-days/requirements.md"
+  - "file://.kiro/specs/open-days/design.md"
+  - "file://.kiro/steering/testing.md"
 ---
 
 # テストエージェント
 
-単体テスト・統合テストの作成と実行を担当します。
+`.kiro/steering/testing.md` に従って、単体テストとプロパティベーステストを書き、実行します。
 
-## TDD方針
+## 書き方
 
-プロジェクトのTDD方針に従ってテストを作成します。
-一般的な指針として:
+- テストは対象と同じディレクトリに置く。単体テストは `<対象>.test.ts`、プロパティベーステストは `<対象>.property.test.ts`
+- プロパティベーステストは、1つの性質につき1つのテスト。テスト名に P の番号と要件の番号を入れる（例：`P1（要件 1.3）: ...`）
+- 生成器は `src/testing/arbitraries.ts` にあるものを使い、足りなければそこに足す。日付には月末、年末、2月29日、日本時間の0時前後を含める
+- 期待値は、テスト対象と独立した方法で求める（例：曜日は Sakamoto の方法、日本時間の日付は UTC+9 の ISO 文字列）
+- 外部サービス（LINE、DynamoDB、SSM、S3）は `src/testing/fakes.ts` の偽物か `vi.fn()` で置き換える。テストから本物の LINE に送らない
+- `any` は使わない。`describe` のネストは3階層まで
 
-### テストファーストで書くもの（Red-Green-Refactor）
-
-ビジネスへの影響が大きいロジック:
-
-- 金額計算・数量計算
-- ステータス遷移バリデーション
-- 入力バリデーション（Zodスキーマ等）
-- アクセス制御・権限チェック
-- 期限判定・時間ベースのロジック
-
-### 実装後テストで書くもの
-
-CRUD操作が主体のコード:
-
-- DB読み書き操作
-- APIハンドラーの統合テスト
-- UIコンポーネント
-
-## テストの書き方
-
-### 単体テスト（Vitest + モック）
-
-```typescript
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
-describe("関数名", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  describe("正常系", () => {
-    it("should 期待される振る舞い when 条件", () => {
-      // Arrange
-      const input = { /* テストデータ */ };
-
-      // Act
-      const result = targetFunction(input);
-
-      // Assert
-      expect(result).toEqual(expected);
-    });
-  });
-
-  describe("異常系", () => {
-    it("should throw when 異常条件", () => {
-      expect(() => targetFunction(invalidInput)).toThrow("エラーメッセージ");
-    });
-  });
-});
-```
-
-### 統合テスト
-
-```typescript
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
-
-describe("ハンドラー名 (integration)", () => {
-  beforeAll(async () => {
-    // セットアップ（DB接続、テストデータ投入等）
-  });
-
-  afterAll(async () => {
-    // クリーンアップ
-  });
-
-  it("should return expected result", async () => {
-    const response = await handler(event, context);
-    expect(response.statusCode).toBe(200);
-  });
-});
-```
-
-## モック戦略
-
-### 外部サービスは必ずモック
-
-- DB Client → `vi.mock()`
-- メール送信サービス → `vi.mock()`
-- 外部API → `vi.mock()`
-- ファイルストレージ → `vi.mock()`
-
-### モックしないもの
-
-- ビジネスロジック関数（純粋関数）
-- バリデーションスキーマ
-- 型定義・定数
-
-## テスト実行コマンド
+## 実行
 
 ```bash
-# 全テスト
-npm test
-
-# 特定ファイル
-npx vitest run path/to/test.test.ts
-
-# ウォッチモード（TDD時）
-npx vitest path/to/test.test.ts
-
-# カバレッジ
-npx vitest run --coverage
+npx vitest run                      # すべて（watch モードは使わない）
+npx vitest run src/calendar         # ディレクトリを指定
+npx tsc --noEmit && npx eslint .    # 型と lint
 ```
 
-## 制約
+失敗したプロパティベーステストは、fast-check が出す seed と反例を報告に書く。
 
-- テストファイルは `*.test.ts` の命名規則に従う
-- `describe` のネストは最大3階層まで
-- 各テストは独立して実行可能にする（テスト間の依存禁止）
-- `any` 型は禁止。テストコードでも型安全性を維持する
+## 書いてよい場所
+
+- `src/**/*.test.ts`、`src/testing/`
+- 本体のコード（`src/` のテスト以外）は直さない。直す必要があれば、理由と修正案を報告する

@@ -139,7 +139,7 @@ const parseCalendarData = (raw: unknown): CalendarData | null => { /* ... */ };
 
 type TodayView =
   | { kind: "inRange"; date: IsoDate; open: boolean; exception: boolean; businessHours: CalendarData["businessHours"] }
-  | { kind: "outOfRange" };
+  | { kind: "outOfRange"; date: IsoDate }; // date は閲覧時刻を日本時間にした日付。公開ページで今日の日付を出すため
 
 /** 要件4.2、4.4、4.5。閲覧時刻を日本時間にした日付を選ぶ */
 const selectToday = (data: CalendarData, now: Date): TodayView => { /* ... */ };
@@ -220,6 +220,8 @@ type NotifyDeps = {
   records: DeliveryRecordStore;
   getToken: () => Promise<string>;
   broadcast: (token: string, text: string) => Promise<BroadcastResult>;
+  /** 文面を作る関数。handler は buildMessage を渡し、テストでは差し替える */
+  buildMessage: (input: MessageInput) => string;
   pageUrl: string;
   log: Logger;
 };
@@ -227,11 +229,13 @@ type NotifyDeps = {
 const runNotify = async (deps: NotifyDeps): Promise<NotifyOutcome> => { /* 下の手順 */ };
 ```
 
+`MessageInput` は `buildMessage` の引数の型（`targetDate`、`kind`、`businessHours`、`pageUrl`）。`buildMessage` を `NotifyDeps` で受け取るのは、文面の実装と配信処理を別々に作ってテストするため。
+
 `runNotify` の手順：
 
 1. `loadCalendar` で公開用データを読み、`planNotification` で計画を作る
 2. `skip` なら記録して終わる。`outOfRange` ならエラーをログに残して終わる
-3. `getToken` でトークンを読む（記録を作る前に読む。SSM の失敗で記録だけが残らないようにする）
+3. `deps.buildMessage` で文面を作り、`getToken` でトークンを読む（どちらも記録を作る前に行う。失敗しても記録だけが残らないようにする）
 4. `records.tryCreate`。`exists` なら送らずに終わる（要件 6.3）
 5. `broadcast` で送る。成功なら `markSent`、失敗なら `markFailed` を呼び、例外を投げずに終わる（要件 6.4）
 

@@ -6,8 +6,10 @@
 # Claude Code 版からの変更点:
 #   - transcript の代わりに record-prompt.sh / record-read.sh の記録を使う
 #   - sam を追加した。deploy / delete / sync / package / publish / remote invoke /
-#     remote test-event put|delete / pipeline bootstrap を変更系とする
-#     (build / validate / local / logs / list / traces / init は対象外)
+#     remote test-event put|delete / pipeline bootstrap / local invoke / local start-lambda を
+#     変更系とする（local の2つは、本番のトークンで友だち全員に配信しうるため）
+#     (build / validate / local generate-event / local start-api / logs / list / traces / init は
+#     対象外)
 #   - aws のグローバルオプション (--profile x、--region x 等) を読み飛ばしてから
 #     <サービス> <操作> を取る (Claude Code 版では aws --profile x s3 rm を見逃していた)
 #   - 本プロジェクト向けに aws の変更系を追加した
@@ -23,8 +25,6 @@
 # バイパス: 依頼者の最後の入力に [hook-bypass: cloud-change] がそれだけの行としてある
 #
 # 限界:
-#   - sam local invoke は対象外。関数が本番の SSM パラメータを読む設定だと、ローカル実行でも
-#     本番の LINE へ配信しうる。テスト用アカウントのトークンで実行すること
 #   - 文字列の形で判定する。変数展開やスクリプト経由の実行 (bash deploy.sh) は止まらない
 #
 # 設定 (.kiro/harness/config.json):
@@ -136,6 +136,10 @@ is_sam_change() { # is_sam_change <sam の後ろの文字列>
   done
   case "${words[0]:-}" in
     deploy|delete|sync|package|publish) return 0 ;;
+    local)
+      # 関数を実際に動かすもの。本番のトークンで友だち全員に配信しうる（line-messaging.md）
+      [[ "${words[1]:-}" == invoke || "${words[1]:-}" == start-lambda ]] && return 0
+      ;;
     remote)
       [[ "${words[1]:-}" == invoke ]] && return 0
       [[ "${words[1]:-}" == test-event && ( "${words[2]:-}" == put || "${words[2]:-}" == delete ) ]] && return 0
