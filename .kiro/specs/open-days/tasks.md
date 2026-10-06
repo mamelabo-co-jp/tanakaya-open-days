@@ -88,14 +88,14 @@ LINE 公式アカウントは本番の1つだけを使い、テスト用アカ�
   - [x]* 3.5 【承認】使わないテンプレートの skills を消す
     - `e2e-testing`、`guardrails-setup`、`prod-ops`、`project-init`、`update-docs`
 
-- [ ] 4. 段階4：公開用データと前日配信のロジック（レッスン4、ボーナス1。遅くとも 10/6 10:00）
+- [x] 4. 段階4：公開用データと前日配信のロジック（レッスン4、ボーナス1。遅くとも 10/6 10:00）
   - [x] 4.1 公開用データを作る（`buildCalendarData`、`parseCalendarData`）と P7
     - _要件：3.1〜3.5。性質：P7_
   - [x] 4.2 「今日」と月の選択を作る（`selectToday`、`selectMonths`）と P8
     - _要件：4.2〜4.5。性質：P8_
   - [x] 4.3 配信の計画を作る（`planNotification`）と P6
     - _要件：5.2〜5.6。性質：P6_
-  - [ ] 4.4 【クラウドセッション】案内の文面を作る（`buildMessage`）と単体テスト
+  - [x] 4.4 【クラウドセッション】案内の文面を作る（`buildMessage`）と単体テスト
     - 4.1〜4.3 を push してから、Kiro Web のクラウドセッションで実装して PR にする。使えないときは手元で実装する
     - 現状：`src/notify/message.ts` に型（`MessageInput`）と関数の形だけがあり、`buildMessage` は呼ぶと `NotImplementedError` を投げる。配信処理はこの例外では配信記録を作らずに止まる。実装したら、`runNotify.test.ts` の「buildMessage is not implemented」のテストを消す
     - _要件：5.7。レッスン：ボーナス1_
